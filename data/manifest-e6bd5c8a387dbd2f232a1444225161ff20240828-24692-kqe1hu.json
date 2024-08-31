@@ -1,0 +1,33 @@
+{
+  "description": "This is a system generated manifest of files expected to be present in this zip. It can be safely deleted.",
+  "metadata": {
+    "generated_at": "2024-08-28T20:47:17+00:00",
+    "trigger": {
+      "file_hashid": "unknown",
+      "action": "unknown"
+    }
+  },
+  "manifest": [
+    {
+      "filename": "trainData.zip",
+      "filesize": 329166,
+      "description": null,
+      "created_at": "2024-08-06 09:34:20 UTC",
+      "updated_at": "2024-08-06 09:34:20 UTC"
+    },
+    {
+      "filename": "SampleSubmission.csv",
+      "filesize": 174326,
+      "description": "",
+      "created_at": "2024-08-08 10:26:48 UTC",
+      "updated_at": "2024-08-08 10:26:56 UTC"
+    },
+    {
+      "filename": "errorMetric_ex.py",
+      "filesize": 8053,
+      "description": null,
+      "created_at": "2024-08-28 20:47:17 UTC",
+      "updated_at": "2024-08-28 20:47:17 UTC"
+    }
+  ]
+}
