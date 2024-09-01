@@ -1,0 +1,13 @@
+Your model's performance metrics indicate that it is performing well:
+
+Mean Absolute Error (MAE): 0.3388
+This value suggests that, on average, the model's predictions are off by about 0.339 kWh from the actual values. For energy consumption predictions, this is relatively low, indicating good accuracy.
+
+Mean Squared Error (MSE): 0.3318
+MSE penalizes larger errors more heavily than smaller ones. A lower MSE is better, and your model's MSE is relatively low, which is a positive sign.
+
+Root Mean Squared Error (RMSE): 0.5760
+RMSE is in the same unit as the target variable (kWh in this case). A lower RMSE means that the model's predictions are closer to the actual values. Your RMSE indicates a reasonably good prediction performance.
+
+R-squared (R²) score: 0.9527
+An R² score close to 1 indicates that a large proportion of the variance in the target variable is explained by the model. An R² of 0.9527 is excellent, suggesting that your model explains 95.27% of the variance in energy consumption.
