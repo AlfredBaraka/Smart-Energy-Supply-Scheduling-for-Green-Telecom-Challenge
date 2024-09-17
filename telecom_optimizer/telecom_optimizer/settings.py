@@ -40,7 +40,14 @@ INSTALLED_APPS = [
     'rest_framework',
     'accounts',
     'rest_framework_simplejwt',
+    "crispy_forms",
+    "crispy_bootstrap5",
 ]
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+
+CRISPY_TEMPLATE_PACK = "bootstrap5"
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -77,9 +84,10 @@ TEMPLATES = [
 ]
 
 AUTHENTICATION_BACKENDS = [
-    'accounts.authentication.EmailBackend',
-    'django.contrib.auth.backends.ModelBackend',  # keep this if you want to support other authentication methods
+    'django.contrib.auth.backends.ModelBackend',  # Default backend
+    # Add other backends if you have them
 ]
+
 
 
 WSGI_APPLICATION = 'telecom_optimizer.wsgi.application'
@@ -136,3 +144,8 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+LOGIN_REDIRECT_URL = 'home'  # Redirect to 'home' after login
+LOGOUT_REDIRECT_URL = 'login'  # Redirect to 'home' after logout
+LOGIN_URL = 'login'  # If someone tries to access a login-required page, redirect them here

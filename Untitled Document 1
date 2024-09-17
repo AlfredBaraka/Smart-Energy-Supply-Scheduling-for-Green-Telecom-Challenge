@@ -1,4 +1,4 @@
-Your model's performance metrics indicate that it is performing well:
+
 
 Mean Absolute Error (MAE): 0.3388
 This value suggests that, on average, the model's predictions are off by about 0.339 kWh from the actual values. For energy consumption predictions, this is relatively low, indicating good accuracy.

@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}Welcome to Telecom Energy Optimizer{% endblock %}
+
+{% block content %}
+<style>
+    body {
+        margin: 0;
+        overflow: hidden; /* Prevent scrolling */
+    }
+    .img-container {
+        height: 100vh; /* Full viewport height */
+        overflow: hidden; /* Hide any overflow */
+    }
+    .img-container img {
+        height: 100%; /* Ensure image fills container */
+        width: 100%;
+        object-fit: cover; /* Ensure image covers the area */
+    }
+</style>
+<div class="container-fluid vh-100 d-flex p-0 m-0">
+    <div class="row w-100 h-100 m-0">
+        <!-- Left: Image -->
+        <div class="col-md-6 p-0 h-100">
+            <img src="https://img.freepik.com/free-photo/low-angle-shot-radio-telescope-near-westerbork-netherlands_181624-45509.jpg?t=st=1726562806~exp=1726566406~hmac=df045beb61c77c0d6b239016bebb402f5483e9af654045794303188eb532ec0d&w=740" 
+                 alt="Telecom Infrastructure" 
+                 class="img-fluid w-100 h-100"
+                 style="object-fit: cover;">
+        </div>
+
+        <!-- Right: Introduction and Buttons -->
+        <div class="col-md-6 d-flex flex-column justify-content-center align-items-center h-100">
+            <h1 class="text-center">Welcome to Telecom Energy Optimizer</h1>
+            <p class="mt-4 text-center">
+                Telecom Energy Optimizer is dedicated to helping telecom operators maximize energy efficiency while reducing costs and minimizing environmental impact. 
+                Our advanced AI-driven tools help manage energy supply, ensuring optimal power utilization across telecom infrastructure.
+            </p>
+           
+            <div class="d-grid gap-2 mt-4 text-center w-50">
+                <a href="{% url 'login' %}" class="btn btn-primary btn-lg">Login</a>
+                <a href="{% url 'register' %}" class="btn btn-outline-primary btn-lg">Sign Up</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

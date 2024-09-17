@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}Main View{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <!-- Chart for Power Usage -->
+    <h3>Power Usage Prediction</h3>
+    {{predicted_usage}}
+    <canvas id="powerUsageChart" width="400" height="200"></canvas>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        var ctx = document.getElementById('powerUsageChart').getContext('2d');
+        var powerUsageChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: Array.from({length: {{ combined_data|length }}}, (_, i) => i + 1),
+                datasets: [{
+                    label: 'Power Usage',
+                    data: {{ combined_data|safe }},
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1,
+                    fill: false
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+</div>
+{% endblock %}

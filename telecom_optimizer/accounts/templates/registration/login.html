@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% load crispy_forms_filters %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<style>
+    body {
+        margin: 0;
+        overflow: hidden; /* Prevent scrolling */
+    }
+    .img-container {
+        height: 100vh; /* Full viewport height */
+        overflow: hidden; /* Hide any overflow */
+    }
+    .img-container img {
+        height: 100%; /* Ensure image fills container */
+        width: 100%;
+        object-fit: cover; /* Ensure image covers the area */
+    }
+</style>
+
+<div class="container-fluid p-0">
+    <div class="row no-gutters">
+        <!-- Left side with the image -->
+        <div class="col-md-6 img-container">
+            <img src="https://img.freepik.com/free-photo/low-angle-shot-radio-telescope-near-westerbork-netherlands_181624-45509.jpg?t=st=1726562806~exp=1726566406~hmac=df045beb61c77c0d6b239016bebb402f5483e9af654045794303188eb532ec0d&w=740" alt="Telecom Image">
+        </div>
+        <!-- Right side with the login form -->
+        <div class="col-md-6 d-flex align-items-center justify-content-center">
+            <div class="w-75">
+                <h2 class="mb-4">Login</h2>
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <button type="submit" class="btn btn-primary mt-3">Login</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

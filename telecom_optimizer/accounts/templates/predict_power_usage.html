@@ -1,0 +1,21 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Predict Power Usage</title>
+</head>
+<body>
+    <h2>Predict Power Usage</h2>
+    <form method="post">
+        {% csrf_token %}
+        <input type="text" name="past_data[]" placeholder="Enter past data separated by commas">
+        <button type="submit">Predict</button>
+    </form>
+
+    {% if past_data %}
+        <h3>Results</h3>
+        <p>Past Data: {{ past_data }}</p>
+        <p>Predicted Usage: {{ predicted_usage }}</p>
+    {% endif %}
+</body>
+</html>

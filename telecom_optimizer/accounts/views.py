@@ -1,101 +1,79 @@
-from django.shortcuts import render
-from rest_framework import generics
-from rest_framework.permissions import AllowAny
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login
+from django.views import View
 from .models import CustomUser
-from .serializers import UserSerializer
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from django.contrib.auth.models import User
+from .forms import CustomUserCreationForm, LoginForm
 from .predictor import TimeSequenceModel
-class RegisterUserView(generics.CreateAPIView):
-    queryset = CustomUser.objects.all()
-    serializer_class = UserSerializer
-    permission_classes = [AllowAny]
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.response import Response
-from django.http import JsonResponse
-from rest_framework import status
-import requests
 import numpy as np
-from django.contrib.auth import authenticate
 
+def index(request):
+    return render(request, 'intro.html')
 
-
-class LoginUserView(generics.GenericAPIView):
-    serializer_class = UserSerializer
-    permission_classes = [AllowAny]
+# Register User View
+class RegisterUserView(View):
+    def get(self, request, *args, **kwargs):
+        form = CustomUserCreationForm()
+        return render(request, 'register.html', {'form': form})
 
     def post(self, request, *args, **kwargs):
-        email = request.data.get('email')
-        password = request.data.get('password')
-
-        # Authenticate the user
-        user = authenticate(request, email=email, password=password)
-        if user is not None:
-            # Generate JWT tokens
-            refresh = RefreshToken.for_user(user)
-            return Response({
-                'refresh': str(refresh),
-                'access': str(refresh.access_token),
-            })
-        else:
-            return Response({'detail': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
-
-
-
-class UserDetailView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        user = request.user
-        data = {
-            'username': user.username,
-            'email': user.email
-        }
-        return Response(data)
-
-
+        form = CustomUserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.set_password(form.cleaned_data['password'])
+            user.save()
+            login(request, user)
+            return redirect('home')  # Redirect to a success page or home
+        return render(request, 'register.html', {'form': form})
     
-def predict_power_usage(request):
-    # Load the model
-    model_path = r'/home/egovridc/Desktop/Smart-Energy-Supply-Scheduling-for-Green-Telecom-Challenge/data/energy_lstm_model_better2.pth'
-    model = TimeSequenceModel(model_path)
+    
+# Login User View
+class LoginUserView(View):
+    def get(self, request, *args, **kwargs):
+        form = LoginForm()
+        return render(request, 'login.html', {'form': form})
 
-    # Example input sequence
-    past_data = np.array([8.36, 6.56, 4.19, 3.98, 7.97, 8.21, 8.49, 8.51, 8.50, 8.77, 8.81, 8.67, 8.86, 8.90, 8.91], dtype=np.float32)
+    def post(self, request, *args, **kwargs):
+        form = LoginForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            password = form.cleaned_data['password']
+            user = authenticate(request, email=email, password=password)
+            if user is not None:
+                login(request, user)
+                return redirect('user-detail')
+            else:
+                form.add_error(None, 'Invalid credentials')
+        return render(request, 'login.html', {'form': form})
 
-    # Make a prediction
-    predicted_usage = model.predict(3, past_data)
+class MainView(View):
+    def get(self, request, *args, **kwargs):
+        # Fetch user details
+        user = request.user
 
-    # Prepare the payload with both past_data and predicted_usage
-    payload = {
-        'past_data': past_data.tolist(),  # Convert numpy array to list
-        'predicted_usage': predicted_usage
-    }
+        # Simulate 24 hours of data from 5 to 7
+        simulated_data = np.linspace(4, 6, 24)
 
-    api_endpoint = 'http://localhost:8000/api/data/power'  
-    try:
-        response = requests.post(api_endpoint, json=payload)
-        # Print response details for debugging
-        print('API Response Status Code:', response.status_code)
-        print('API Response Content:', response.text)  # Print raw response text
+        # Initialize the model
+        model_path = '/home/egovridc/Desktop/Smart-Energy-Supply-Scheduling-for-Green-Telecom-Challenge/data/energy_lstm_model_better2.pth'
+        model = TimeSequenceModel(model_path)
 
-        # Attempt to decode the response JSON
-        try:
-            api_response_json = response.json()
-        except ValueError as e:
-            # Handle JSON decoding error
-            print('JSON Decode Error:', e)
-            api_response_json = {'error': 'Failed to decode JSON response'}
+        # Predict the next 6 hours using the last 18 hours of simulated data
+        past_data = [3.975, 3.975, 3.97, 3.99, 3.97, 3.98, 4, 4.16, 4.19, 4.2, 4.22, 4.2, 4.19, 4.2, 4.2, 4.19, 4.19, 4.19, 4.07]
+        predicted_usage = model.predict(6, past_data)
 
-    except requests.RequestException as e:
-        # Handle request exception
-        print('Request Error:', e)
-        api_response_json = {'error': 'Failed to make API request'}
+        # Ensure predicted_usage is a NumPy array
+        if isinstance(predicted_usage, list):
+            predicted_usage = np.array(predicted_usage)
 
-    # Return JSON response
-    return JsonResponse({
-        'predicted_usage': predicted_usage,
-        'past_data': past_data.tolist()
-    })
+        # Combine the last 18 hours of actual data with the 6 hours of predicted data
+        combined_data = np.concatenate((past_data, predicted_usage))
+
+        # Prepare context for the template
+        context = {
+            'user': user,
+            'past_data': past_data.tolist(),
+            'predicted_usage': predicted_usage.tolist(),
+            'combined_data': combined_data.tolist()  # Convert combined_data to list
+        }
+
+        return render(request, 'main.html', context)
