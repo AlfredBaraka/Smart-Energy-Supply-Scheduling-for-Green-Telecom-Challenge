@@ -58,7 +58,7 @@ class MainView(View):
         model = TimeSequenceModel(model_path)
 
         # Predict the next 6 hours using the last 18 hours of simulated data
-        past_data = [3.975, 3.975, 3.97, 3.99, 3.97, 3.98, 4, 4.16, 4.19, 4.2, 4.22, 4.2, 4.19, 4.2, 4.2, 4.19, 4.19, 4.19, 4.07]
+        past_data = np.array([3.975, 3.975, 3.97, 3.99, 3.97, 3.98, 4, 4.16, 4.19, 4.2, 4.22, 4.2, 4.19, 4.2, 4.2, 4.19, 4.19, 4.19])
         predicted_usage = model.predict(6, past_data)
 
         # Ensure predicted_usage is a NumPy array
