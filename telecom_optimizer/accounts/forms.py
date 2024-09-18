@@ -29,14 +29,13 @@ class CustomUserCreationForm(forms.ModelForm):
 
 
 
-class LoginForm(forms.Form):
-    email = forms.EmailField(widget=forms.EmailInput(attrs={'placeholder': 'Enter email'}))
-    password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Enter password'}))
 
-    def __init__(self, *args, **kwargs):
-        super(LoginForm, self).__init__(*args, **kwargs)
-        self.fields['email'].widget.attrs.update({'class': 'form-control'})
-        self.fields['password'].widget.attrs.update({'class': 'form-control'})
+from django.contrib.auth.forms import AuthenticationForm
+from .models import CustomUser  
+
+class LoginForm(AuthenticationForm):
+    username = forms.CharField(max_length=254, label='Username')
+    password = forms.CharField(widget=forms.PasswordInput, label='Password')
 
 
 

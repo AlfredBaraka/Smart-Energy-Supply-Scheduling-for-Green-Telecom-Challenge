@@ -1,31 +1,30 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
 from django.views import View
+from django.utils import timezone
+from datetime import timedelta, datetime
 from .models import CustomUser, ActualPowerUsage, PredictedPowerUsage
 from .forms import CustomUserCreationForm, LoginForm, SimulationForm
 from .predictor import TimeSequenceModel
 import numpy as np
-from django.utils import timezone
-from datetime import timedelta
-from django import forms
 import json
-from django.contrib.auth.models import User
 import random
-import datetime
 
 
 def success_page(request):
     return render(request, 'success.html')
 
+
 def index(request):
     return render(request, 'intro.html')
 
+
 class RegisterUserView(View):
-    def get(self, request, *args, **kwargs):
+    def get(self, request):
         form = CustomUserCreationForm()
         return render(request, 'register.html', {'form': form})
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request):
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save(commit=False)
@@ -34,50 +33,44 @@ class RegisterUserView(View):
             login(request, user)
             return redirect('home')
         return render(request, 'register.html', {'form': form})
-    
+
+
 class LoginUserView(View):
-    def get(self, request, *args, **kwargs):
+    def get(self, request):
         form = LoginForm()
         return render(request, 'login.html', {'form': form})
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request):
         form = LoginForm(request.POST)
         if form.is_valid():
             email = form.cleaned_data['email']
             password = form.cleaned_data['password']
             user = authenticate(request, email=email, password=password)
-            if user is not None:
+            if user:
                 login(request, user)
                 return redirect('user-detail')
-            else:
-                form.add_error(None, 'Invalid credentials')
+            form.add_error(None, 'Invalid credentials')
         return render(request, 'login.html', {'form': form})
 
-class MainView(View):
-    def get(self, request, *args, **kwargs):
-        user = request.user
 
+class MainView(View):
+    def get(self, request):
+        user = request.user
         current_time = timezone.now().replace(minute=0, second=0, microsecond=0)
 
         # Fetch the past 18 hours of actual power usage
         past_18_hours = ActualPowerUsage.objects.filter(
             user=user,
-            timestamp__gte=current_time - timedelta(hours=17),
-            timestamp__lte=current_time
+            timestamp__range=(current_time - timedelta(hours=17), current_time)
         ).order_by('timestamp')
 
         if not past_18_hours:
-            # Handle case where no past data is available
-            return render(request, 'main.html', {
-                'message': 'No data available for the past 18 hours.'
-            })
+            return render(request, 'main.html', {'message': 'No data available for the past 18 hours.'})
 
         if len(past_18_hours) < 10:
-            # Handle case where past data is less than 10 hours
-            return render(request, 'main.html', {
-                'message': 'Not enough data for prediction. At least 10 hours of data is required.'
-            })
+            return render(request, 'main.html', {'message': 'Not enough data for prediction. At least 10 hours of data is required.'})
 
+        # Load and use the prediction model
         model_path = '/home/egovridc/Desktop/Smart-Energy-Supply-Scheduling-for-Green-Telecom-Challenge/data/energy_lstm_model_better2.pth'
         model = TimeSequenceModel(model_path)
 
@@ -100,15 +93,13 @@ class MainView(View):
         timestamps = [entry.timestamp for entry in past_18_hours]
         timestamps += [current_time + timedelta(hours=(i + 1)) for i in range(len(predicted_usage))]
 
-        # Prepare context for the template
         context = {
             'user': user,
             'timestamps': [ts.isoformat() for ts in timestamps],  # Convert to ISO 8601 format
-            'combined_data': combined_data.tolist(), 
+            'combined_data': combined_data.tolist(),
         }
 
         return render(request, 'main.html', context)
-
 
 
 def simulate_data(request):
@@ -120,14 +111,12 @@ def simulate_data(request):
             simulate_hours = form.cleaned_data['simulate_hours']
             now = timezone.now()
 
-            # Generate simulated data at hourly intervals
-            simulated_data = []
-            for i in range(simulate_hours):
-                timestamp = now - timedelta(hours=(simulate_hours - i))  # Each hour from now backward
-                usage = random.uniform(min_value, max_value)
-                # Set to start of the hour in 24-hour format
-                timestamp = timestamp.replace(minute=0, second=0, microsecond=0)
-                simulated_data.append((timestamp, usage))
+            simulated_data = [
+                (
+                    now - timedelta(hours=(simulate_hours - i)).replace(minute=0, second=0, microsecond=0),
+                    random.uniform(min_value, max_value)
+                ) for i in range(simulate_hours)
+            ]
 
             return render(request, 'review_simulation.html', {'simulated_data': simulated_data})
 
@@ -136,10 +125,6 @@ def simulate_data(request):
 
     return render(request, 'simulate_data.html', {'form': form})
 
-
-import json
-from django.utils import timezone
-from datetime import datetime
 
 def save_simulated_data(request):
     if request.method == 'POST':
@@ -150,7 +135,6 @@ def save_simulated_data(request):
             for entry in simulated_data:
                 timestamp_str = entry['timestamp']
                 usage = entry['usage']
-                # Parse timestamp in 24-hour format
                 timestamp = timezone.make_aware(datetime.strptime(timestamp_str, '%Y-%m-%d %H:%M:%S'))
                 ActualPowerUsage.objects.create(user=request.user, timestamp=timestamp, usage=usage)
 
