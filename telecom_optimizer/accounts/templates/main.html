@@ -1,36 +1,78 @@
 {% extends 'base.html' %}
 
-{% block title %}Main View{% endblock %}
+{% block title %}Welcome to Telecom Energy Optimizer{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <!-- Chart for Power Usage -->
-    <h3>Power Usage Prediction</h3>
-    {{predicted_usage}}
-    <canvas id="powerUsageChart" width="400" height="200"></canvas>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <div class="container mt-5">
+        <h2>Power Usage Data (Last 18 Hours and Next 6 Hours Prediction)</h2>
+        <canvas id="powerUsageChart" width="400" height="200"></canvas>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2024 Telecom Energy Optimizer. All rights reserved.</p>
+    </footer>
+
     <script>
-        var ctx = document.getElementById('powerUsageChart').getContext('2d');
-        var powerUsageChart = new Chart(ctx, {
-            type: 'line',
+        // Data from Django context
+        const pastData = {{ past_data|safe }};  // Last 18 hours (actual data)
+        const predictedData = {{ predicted_usage|safe }};  // Next 6 hours (predicted data)
+        
+        // Combine actual and predicted data
+        const combinedData = pastData.concat(predictedData);
+        
+        // Labels for the X-axis (Hours)
+        const labels = [];
+        for (let i = 0; i < pastData.length; i++) {
+            labels.push(`Hour ${i + 1}`);
+        }
+        for (let i = 0; i < predictedData.length; i++) {
+            labels.push(`Hour ${pastData.length + i + 1} (Predicted)`);
+        }
+
+        // Chart.js configuration
+        const ctx = document.getElementById('powerUsageChart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'line',  // Line chart
             data: {
-                labels: Array.from({length: {{ combined_data|length }}}, (_, i) => i + 1),
+                labels: labels,
                 datasets: [{
-                    label: 'Power Usage',
-                    data: {{ combined_data|safe }},
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1,
-                    fill: false
+                    label: 'Power Usage (kWh)',
+                    data: combinedData,
+                    borderColor: function(context) {
+                        const index = context.dataIndex;
+                        // Change border color for predicted data
+                        return index < pastData.length ? '#007bff' : '#28a745';
+                    },
+                    backgroundColor: function(context) {
+                        const index = context.dataIndex;
+                        // Change fill color for predicted data
+                        return index < pastData.length ? 'rgba(0, 123, 255, 0.2)' : 'rgba(40, 167, 69, 0.2)';
+                    },
+                    fill: true,  // Fill under the line
+                    pointBackgroundColor: function(context) {
+                        const index = context.dataIndex;
+                        // Change point color for predicted data
+                        return index < pastData.length ? '#007bff' : '#28a745';
+                    },
+                    borderWidth: 2
                 }]
             },
             options: {
                 scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Hours'
+                        }
+                    },
                     y: {
-                        beginAtZero: true
+                        title: {
+                            display: true,
+                            text: 'Power Usage (kWh)'
+                        }
                     }
                 }
             }
         });
     </script>
-</div>
 {% endblock %}

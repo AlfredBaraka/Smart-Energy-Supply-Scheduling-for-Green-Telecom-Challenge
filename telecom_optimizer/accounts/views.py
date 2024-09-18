@@ -1,15 +1,19 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
 from django.views import View
-from .models import CustomUser
+from .models import CustomUser, ActualPowerUsage, PredictedPowerUsage
 from .forms import CustomUserCreationForm, LoginForm
 from .predictor import TimeSequenceModel
 import numpy as np
+from django.utils import timezone
+from django.db.models import Q
+import numpy as np
+from datetime import timedelta
 
 def index(request):
     return render(request, 'intro.html')
 
-# Register User View
+
 class RegisterUserView(View):
     def get(self, request, *args, **kwargs):
         form = CustomUserCreationForm()
@@ -22,11 +26,11 @@ class RegisterUserView(View):
             user.set_password(form.cleaned_data['password'])
             user.save()
             login(request, user)
-            return redirect('home')  # Redirect to a success page or home
+            return redirect('home')
         return render(request, 'register.html', {'form': form})
     
     
-# Login User View
+
 class LoginUserView(View):
     def get(self, request, *args, **kwargs):
         form = LoginForm()
@@ -45,35 +49,62 @@ class LoginUserView(View):
                 form.add_error(None, 'Invalid credentials')
         return render(request, 'login.html', {'form': form})
 
+
+
+
+
+
+
 class MainView(View):
     def get(self, request, *args, **kwargs):
-        # Fetch user details
         user = request.user
 
-        # Simulate 24 hours of data from 5 to 7
-        simulated_data = np.linspace(4, 6, 24)
+        current_time = timezone.now().replace(minute=0, second=0, microsecond=0)
 
-        # Initialize the model
+    
+        actual_usage = 4.29  
+
+        
+        actual_entry, created = ActualPowerUsage.objects.update_or_create(
+            user=user,
+            timestamp=current_time, 
+            defaults={'usage': actual_usage}
+        )
+
+
+        past_18_hours = ActualPowerUsage.objects.filter(
+            user=user,
+            timestamp__gte=current_time - timedelta(hours=17),
+            timestamp__lte=current_time
+        ).order_by('timestamp')
+
         model_path = '/home/egovridc/Desktop/Smart-Energy-Supply-Scheduling-for-Green-Telecom-Challenge/data/energy_lstm_model_better2.pth'
         model = TimeSequenceModel(model_path)
 
-        # Predict the next 6 hours using the last 18 hours of simulated data
-        past_data = np.array([3.975, 3.975, 3.97, 3.99, 3.97, 3.98, 4, 4.16, 4.19, 4.2, 4.22, 4.2, 4.19, 4.2, 4.2, 4.19, 4.19, 4.19])
-        predicted_usage = model.predict(6, past_data)
 
-        # Ensure predicted_usage is a NumPy array
-        if isinstance(predicted_usage, list):
-            predicted_usage = np.array(predicted_usage)
+        past_data = np.array([entry.usage for entry in past_18_hours])
 
-        # Combine the last 18 hours of actual data with the 6 hours of predicted data
+
+        predicted_usage = np.array(model.predict(6, past_data))  
+
+        for i, predicted_value in enumerate(predicted_usage):
+            future_timestamp = current_time + timedelta(hours=(i + 1))
+            PredictedPowerUsage.objects.update_or_create(
+                user=user,
+                timestamp=future_timestamp,
+                defaults={'predicted_usage': predicted_value}
+            )
+
         combined_data = np.concatenate((past_data, predicted_usage))
 
-        # Prepare context for the template
+     
         context = {
             'user': user,
-            'past_data': past_data.tolist(),
-            'predicted_usage': predicted_usage.tolist(),
-            'combined_data': combined_data.tolist()  # Convert combined_data to list
+            'past_data': past_data.tolist(), 
+            'predicted_usage': predicted_usage.tolist(), 
+            'combined_data': combined_data.tolist(), 
         }
 
         return render(request, 'main.html', context)
+
+

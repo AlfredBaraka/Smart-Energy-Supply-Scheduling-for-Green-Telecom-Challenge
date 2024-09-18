@@ -11,6 +11,11 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+from django.conf import settings
+
+import os
+
+# model_path = os.path.join(settings.BASE_DIR, '/home/egovridc/Desktop/Smart-Energy-Supply-Scheduling-for-Green-Telecom-Challenge/data/', 'energy_lstm_model_better2.pth')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -149,3 +154,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_REDIRECT_URL = 'home'  # Redirect to 'home' after login
 LOGOUT_REDIRECT_URL = 'login'  # Redirect to 'home' after logout
 LOGIN_URL = 'login'  # If someone tries to access a login-required page, redirect them here
+
+
+TIME_ZONE = 'Africa/Nairobi'
+
+# Ensure that Django uses the time zone setting
+USE_TZ = True

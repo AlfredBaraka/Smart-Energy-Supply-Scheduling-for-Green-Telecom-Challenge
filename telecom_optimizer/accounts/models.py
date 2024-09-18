@@ -27,3 +27,25 @@ class CustomUser(AbstractBaseUser):
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
+
+
+from django.db import models
+from django.contrib.auth.models import User
+from django.utils import timezone
+
+class ActualPowerUsage(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)  
+    timestamp = models.DateTimeField(default=timezone.now)    
+    usage = models.FloatField()                               
+
+    def __str__(self):
+        return f"{self.user.username} - {self.timestamp} - {self.usage} kWh"
+
+
+class PredictedPowerUsage(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)  
+    timestamp = models.DateTimeField(default=timezone.now)    
+    predicted_usage = models.FloatField()                     
+
+    def __str__(self):
+        return f"{self.user.username} - {self.timestamp} - {self.predicted_usage} kWh"
