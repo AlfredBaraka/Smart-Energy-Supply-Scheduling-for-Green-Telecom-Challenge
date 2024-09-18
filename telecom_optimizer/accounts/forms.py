@@ -37,3 +37,12 @@ class LoginForm(forms.Form):
         super(LoginForm, self).__init__(*args, **kwargs)
         self.fields['email'].widget.attrs.update({'class': 'form-control'})
         self.fields['password'].widget.attrs.update({'class': 'form-control'})
+
+
+
+from django import forms
+
+class SimulationForm(forms.Form):
+    min_value = forms.FloatField(label='Min Value', min_value=0)
+    max_value = forms.FloatField(label='Max Value', min_value=0)
+    simulate_hours = forms.IntegerField(label='Hours to Simulate', min_value=1, max_value=24)

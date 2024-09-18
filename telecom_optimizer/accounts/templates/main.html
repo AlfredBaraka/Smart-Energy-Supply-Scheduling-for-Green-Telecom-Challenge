@@ -1,58 +1,51 @@
 {% extends 'base.html' %}
 
-{% block title %}Welcome to Telecom Energy Optimizer{% endblock %}
+{% block title %}Telecom Energy Optimizer{% endblock %}
 
 {% block content %}
-    <div class="container mt-5">
-        <h2>Power Usage Data (Last 18 Hours and Next 6 Hours Prediction)</h2>
+<div class="container mt-5">
+    <h2>Power Usage Data (Last 18 Hours and Next 6 Hours Prediction)</h2>
+
+    {% if message %}
+        <div class="alert alert-warning">
+            {{ message }}
+        </div>
+    {% else %}
         <canvas id="powerUsageChart" width="400" height="200"></canvas>
-    </div>
+    {% endif %}
+</div>
 
-    <footer class="footer">
-        <p>&copy; 2024 Telecom Energy Optimizer. All rights reserved.</p>
-    </footer>
+<footer class="footer">
+    <p>&copy; 2024 Telecom Energy Optimizer. All rights reserved.</p>
+</footer>
 
-    <script>
+<script>
+    {% if timestamps and combined_data %}
         // Data from Django context
-        const pastData = {{ past_data|safe }};  // Last 18 hours (actual data)
-        const predictedData = {{ predicted_usage|safe }};  // Next 6 hours (predicted data)
+        const timestamps = {{ timestamps|safe }};
+        const combinedData = {{ combined_data|safe }};
         
-        // Combine actual and predicted data
-        const combinedData = pastData.concat(predictedData);
-        
-        // Labels for the X-axis (Hours)
-        const labels = [];
-        for (let i = 0; i < pastData.length; i++) {
-            labels.push(`Hour ${i + 1}`);
-        }
-        for (let i = 0; i < predictedData.length; i++) {
-            labels.push(`Hour ${pastData.length + i + 1} (Predicted)`);
-        }
-
         // Chart.js configuration
         const ctx = document.getElementById('powerUsageChart').getContext('2d');
         const chart = new Chart(ctx, {
-            type: 'line',  // Line chart
+            type: 'line',
             data: {
-                labels: labels,
+                labels: timestamps,
                 datasets: [{
                     label: 'Power Usage (kWh)',
                     data: combinedData,
                     borderColor: function(context) {
                         const index = context.dataIndex;
-                        // Change border color for predicted data
-                        return index < pastData.length ? '#007bff' : '#28a745';
+                        return index < combinedData.length - 6 ? '#007bff' : '#28a745';
                     },
                     backgroundColor: function(context) {
                         const index = context.dataIndex;
-                        // Change fill color for predicted data
-                        return index < pastData.length ? 'rgba(0, 123, 255, 0.2)' : 'rgba(40, 167, 69, 0.2)';
+                        return index < combinedData.length - 6 ? 'rgba(0, 123, 255, 0.2)' : 'rgba(40, 167, 69, 0.2)';
                     },
-                    fill: true,  // Fill under the line
+                    fill: true,
                     pointBackgroundColor: function(context) {
                         const index = context.dataIndex;
-                        // Change point color for predicted data
-                        return index < pastData.length ? '#007bff' : '#28a745';
+                        return index < combinedData.length - 6 ? '#007bff' : '#28a745';
                     },
                     borderWidth: 2
                 }]
@@ -60,9 +53,17 @@
             options: {
                 scales: {
                     x: {
+                        type: 'time',
+                        time: {
+                            unit: 'hour',
+                            tooltipFormat: 'yyyy-MM-dd HH:mm:ss',
+                            displayFormats: {
+                                hour: 'yyyy-MM-dd HH:mm'
+                            }
+                        },
                         title: {
                             display: true,
-                            text: 'Hours'
+                            text: 'Timestamp'
                         }
                     },
                     y: {
@@ -74,5 +75,6 @@
                 }
             }
         });
-    </script>
-{% endblock %}
+    {% endif %}
+</script>
+{%endblock%}

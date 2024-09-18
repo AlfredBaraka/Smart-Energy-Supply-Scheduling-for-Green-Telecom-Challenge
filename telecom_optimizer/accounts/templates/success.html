@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Success</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        .container {
+            display: inline-block;
+            padding: 20px;
+            border: 1px solid #4CAF50;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .success-message {
+            color: #4CAF50;
+            font-size: 24px;
+        }
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            text-decoration: none;
+            color: #2196F3;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="success-message">
+            Data Saved Successfully!
+        </div>
+        <a href="{% url 'simulate_data' %}">Simulate More Data</a>
+    </div>
+</body>
+</html>
